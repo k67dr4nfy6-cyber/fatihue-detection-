@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>智慧疲勞偵測系統</title>
+<title>智慧疲勞偵測系統 Pro</title>
 
 <style>
 :root{
@@ -24,6 +24,7 @@ body{
   color:var(--text);
   font-family:Arial,"Microsoft JhengHei",sans-serif;
   text-align:center;
+  transition: background 0.3s ease;
 }
 header{
   padding:16px 12px 10px;
@@ -74,6 +75,7 @@ canvas{
   border-radius:999px;
   font-size:13px;
   font-weight:800;
+  transition: background 0.3s;
 }
 .card{
   margin-top:14px;
@@ -125,6 +127,7 @@ button{
   color:white;
   font-size:18px;
   font-weight:900;
+  cursor: pointer;
 }
 button.secondary{
   background:#34435c;
@@ -147,17 +150,10 @@ button.secondary{
   max-height:130px;
   overflow:auto;
 }
-.small{
-  color:var(--muted);
-  font-size:13px;
-  margin-top:8px;
-}
-
 .progressWrap{margin-top:14px;background:#1b2a44;border-radius:16px;padding:10px}
 .progressBar{height:18px;background:#0b1424;border-radius:999px;overflow:hidden}
-.progressFill{height:100%;width:0%}
-.eventLog{margin-top:12px;max-height:180px;overflow:auto;text-align:left}
-
+.progressFill{height:100%;width:0%;transition:width 0.3s, background-color 0.3s;}
+.eventLog{margin-top:12px;max-height:180px;overflow:auto;text-align:left;font-size:13px;color:var(--muted);}
 </style>
 </head>
 
@@ -165,7 +161,6 @@ button.secondary{
 <header>智慧疲勞偵測系統</header>
 
 <div class="container">
-
   <div class="cameraBox">
     <video id="video" autoplay playsinline muted></video>
     <canvas id="canvas"></canvas>
@@ -175,13 +170,11 @@ button.secondary{
   <div class="card">
     <div id="status" class="status">等待啟動</div>
     
-
     <div class="grid">
       <div class="box">
         <div class="label">EAR 眼睛值</div>
         <div id="ear" class="value">0.000</div>
       </div>
-
       <div class="box">
         <div class="label">MAR 嘴巴值</div>
         <div id="mar" class="value">0.000</div>
@@ -193,7 +186,6 @@ button.secondary{
         <div class="label">閉眼累積</div>
         <div id="eyeTime" class="value">0.0s</div>
       </div>
-
       <div class="box">
         <div class="label">打哈欠累積</div>
         <div id="yawnTime" class="value">0.0s</div>
@@ -208,24 +200,24 @@ button.secondary{
     </div>
 
     <div id="log" class="log">系統訊息：尚未啟動。</div>
-<div class="progressWrap">
-<div>疲勞指數：<span id="fatigueScore">0</span>%</div>
-<div class="progressBar"><div id="fatigueFill" class="progressFill"></div></div>
-<div id="fatigueLevel">😀 清醒</div>
-</div>
 
-<div class="grid">
-<div class="box"><div class="label">閉眼次數</div><div id="blinkCount" class="value">0</div></div>
-<div class="box"><div class="label">哈欠次數</div><div id="yawnCount" class="value">0</div></div>
-</div>
+    <div class="progressWrap">
+      <div>疲勞指數：<span id="fatigueScore">0</span>%</div>
+      <div class="progressBar"><div id="fatigueFill" class="progressFill"></div></div>
+      <div id="fatigueLevel">😀 清醒</div>
+    </div>
 
-<div class="grid">
-<div class="box"><div class="label">FPS</div><div id="fps" class="value">0</div></div>
-<div class="box"><div class="label">EAR基準值</div><div id="baselineEar" class="value">--</div></div>
-</div>
+    <div class="grid">
+      <div class="box"><div class="label">閉眼次數</div><div id="blinkCount" class="value">0</div></div>
+      <div class="box"><div class="label">哈欠次數</div><div id="yawnCount" class="value">0</div></div>
+    </div>
 
-<div class="eventLog" id="eventLog">事件紀錄：</div>
+    <div class="grid">
+      <div class="box"><div class="label">FPS</div><div id="fps" class="value">0</div></div>
+      <div class="box"><div class="label">EAR基準值</div><div id="baselineEar" class="value">--</div></div>
+    </div>
 
+    <div class="eventLog" id="eventLog">事件紀錄：</div>
   </div>
 </div>
 
@@ -243,14 +235,14 @@ const eyeTimeText = document.getElementById("eyeTime");
 const yawnTimeText = document.getElementById("yawnTime");
 const logBox = document.getElementById("log");
 const badge = document.getElementById("badge");
-const fatigueScoreEl=document.getElementById("fatigueScore");
-const fatigueFill=document.getElementById("fatigueFill");
-const fatigueLevel=document.getElementById("fatigueLevel");
-const blinkCountEl=document.getElementById("blinkCount");
-const yawnCountEl=document.getElementById("yawnCount");
-const fpsEl=document.getElementById("fps");
-const baselineEarEl=document.getElementById("baselineEar");
-const eventLog=document.getElementById("eventLog");
+const fatigueScoreEl = document.getElementById("fatigueScore");
+const fatigueFill = document.getElementById("fatigueFill");
+const fatigueLevel = document.getElementById("fatigueLevel");
+const blinkCountEl = document.getElementById("blinkCount");
+const yawnCountEl = document.getElementById("yawnCount");
+const fpsEl = document.getElementById("fps");
+const baselineEarEl = document.getElementById("baselineEar");
+const eventLog = document.getElementById("eventLog");
 
 const LEFT_EYE = [33,160,158,133,153,144];
 const RIGHT_EYE = [362,385,387,263,373,380];
@@ -264,114 +256,130 @@ let yawnStart = null;
 let running = false;
 let stream = null;
 let faceMesh = null;
-let alarmOscillator = null;
+
+// 音訊相關優化
 let audioContext = null;
+let alarmOscillator = null;
+let alarmGain = null;
+
 let lastProcess = 0;
 let lastAlarmVibrate = 0;
-let fatigueScore=0,blinkCount=0,yawnCount=0;
-let blinkFlag=false,yawnFlag=false;
-let fps=0,lastFrame=performance.now();
-let lastWarningTime=0;
-let calibration=[],baselineEAR=null;
+let fatigueScore = 0, blinkCount = 0, yawnCount = 0;
+let blinkFlag = false, yawnFlag = false;
+let fps = 0, lastFrame = performance.now();
+let lastWarningTime = 0;
+let lastEventTime = Date.now(); // 記錄最後一次疲勞事件的時間
+let calibration = [], baselineEAR = null;
 
-setInterval(()=>{
-  if(fatigueScore > 0 && !blinkFlag && !yawnFlag){
-    fatigueScore--;
-    fatigueScoreEl.innerText=fatigueScore;
-    fatigueFill.style.width=fatigueScore+"%";
+// 每 3 秒檢查是否需要緩慢扣減疲勞點數（8秒內無事件才扣分）
+setInterval(() => {
+  if (running && fatigueScore > 0 && (Date.now() - lastEventTime > 8000)) {
+    fatigueScore = Math.max(0, fatigueScore - 2);
+    updateFatigueUI();
   }
-},3000);
+}, 3000);
 
 function addEvent(t){
- const time=new Date().toLocaleTimeString();
- eventLog.innerHTML="<div>"+time+" - "+t+"</div>"+eventLog.innerHTML;
+  const time = new Date().toLocaleTimeString();
+  eventLog.innerHTML = "<div>" + time + " - " + t + "</div>" + eventLog.innerHTML;
 }
+
 function log(msg){
   logBox.innerText = "系統訊息：" + msg;
 }
 
 function distance(a,b){
-  const dx = a.x - b.x;
-  const dy = a.y - b.y;
-  return Math.sqrt(dx*dx + dy*dy);
+  return Math.sqrt((a.x - b.x)**2 + (a.y - b.y)**2);
 }
 
-function calculateEAR(landmarks,indices){
-  const p1 = landmarks[indices[0]];
-  const p2 = landmarks[indices[1]];
-  const p3 = landmarks[indices[2]];
-  const p4 = landmarks[indices[3]];
-  const p5 = landmarks[indices[4]];
-  const p6 = landmarks[indices[5]];
-  return (distance(p2,p6)+distance(p3,p5))/(2.0*distance(p1,p4));
+function calculateEAR(landmarks, indices){
+  const p1 = landmarks[indices[0]], p2 = landmarks[indices[1]], p3 = landmarks[indices[2]];
+  const p4 = landmarks[indices[3]], p5 = landmarks[indices[4]], p6 = landmarks[indices[5]];
+  return (distance(p2,p6) + distance(p3,p5)) / (2.0 * distance(p1,p4));
 }
 
-function calculateMAR(landmarks,indices){
-  const top = landmarks[indices[0]];
-  const bottom = landmarks[indices[1]];
-  const left = landmarks[indices[2]];
-  const right = landmarks[indices[3]];
-  return distance(top,bottom)/distance(left,right);
+function calculateMAR(landmarks, indices){
+  return distance(landmarks[indices[0]], landmarks[indices[1]]) / distance(landmarks[indices[2]], landmarks[indices[3]]);
 }
 
-function drawPoint(p,color){
+function drawPoint(p, color){
   ctx.fillStyle = color;
   ctx.beginPath();
-  ctx.arc(p.x*canvas.width,p.y*canvas.height,4,0,Math.PI*2);
+  ctx.arc(p.x * canvas.width, p.y * canvas.height, 3, 0, Math.PI * 2);
   ctx.fill();
 }
 
 function prepareAudio(){
-  if(!audioContext){
+  if (!audioContext) {
     audioContext = new (window.AudioContext || window.webkitAudioContext)();
   }
-  if(audioContext.state === "suspended"){
+  if (audioContext.state === "suspended") {
     audioContext.resume();
   }
 }
 
+// 優化為高質感、間歇性嗶嗶聲
 function startAlarm(){
   prepareAudio();
 
   const now = Date.now();
-  if(navigator.vibrate && now - lastAlarmVibrate > 1200){
-    navigator.vibrate([250,120,250,120,250]);
+  // 限制震動頻率
+  if (navigator.vibrate && now - lastAlarmVibrate > 1500) {
+    navigator.vibrate([300, 150, 300]);
     lastAlarmVibrate = now;
   }
 
-  if(!alarmOscillator){
-    const gain = audioContext.createGain();
+  if (!alarmOscillator) {
+    alarmGain = audioContext.createGain();
     alarmOscillator = audioContext.createOscillator();
 
-    alarmOscillator.type = "square";
-    alarmOscillator.frequency.setValueAtTime(880, audioContext.currentTime);
-    gain.gain.setValueAtTime(0.06, audioContext.currentTime);
-
-    alarmOscillator.connect(gain);
-    gain.connect(audioContext.destination);
+    alarmOscillator.type = "triangle"; // 改用柔和一點的三角波
+    alarmOscillator.frequency.setValueAtTime(988, audioContext.currentTime); // B5 聲音穿透力好
+    
+    // 建立間歇性音效 (嗶 嗶 嗶)
+    const t = audioContext.currentTime;
+    alarmGain.gain.setValueAtTime(0, t);
+    
+    // 循環排程音量 (1秒一週期：0.4秒響, 0.1秒淡出, 0.5秒靜音)
+    alarmGain.gain.setTargetAtTime(0.08, t, 0.05);
+    alarmGain.gain.setTargetAtTime(0, t + 0.4, 0.03);
+    
+    // 使用節拍器模式實現持續間歇音
+    alarmOscillator.connect(alarmGain);
+    alarmGain.connect(audioContext.destination);
     alarmOscillator.start();
+    
+    // 每秒重置一次音量排程
+    alarmOscillator.intervalId = setInterval(() => {
+      const curT = audioContext.currentTime;
+      if(alarmGain) {
+        alarmGain.gain.setTargetAtTime(0.08, curT, 0.05);
+        alarmGain.gain.setTargetAtTime(0, curT + 0.4, 0.03);
+      }
+    }, 1000);
   }
 }
 
 function stopAlarm(){
-  if(alarmOscillator){
-    try{
+  if (alarmOscillator) {
+    clearInterval(alarmOscillator.intervalId);
+    try {
       alarmOscillator.stop();
       alarmOscillator.disconnect();
-    }catch(e){}
+    } catch(e){}
     alarmOscillator = null;
+    alarmGain = null;
   }
 }
 
-function setStatus(text, warning=false){
+function setStatus(text, warning = false){
   statusText.innerText = text;
-  if(warning && Date.now()-lastWarningTime>1500){
-      lastWarningTime=Date.now();
+  if (warning) {
     statusText.classList.add("warning");
     badge.innerText = "警示中";
     badge.style.background = "rgba(255,77,77,.78)";
     document.body.style.background = "#1a0710";
-  }else{
+  } else {
     statusText.classList.remove("warning");
     badge.innerText = running ? "偵測中" : "待機中";
     badge.style.background = "rgba(7,17,31,.72)";
@@ -379,29 +387,41 @@ function setStatus(text, warning=false){
   }
 }
 
+function updateFatigueUI(){
+  fatigueScoreEl.innerText = fatigueScore;
+  fatigueFill.style.width = fatigueScore + "%";
+  
+  if(fatigueScore < 30) {
+    fatigueLevel.innerText = "😀 清醒";
+    fatigueFill.style.backgroundColor = "var(--ok)";
+  } else if(fatigueScore < 60) {
+    fatigueLevel.innerText = "😐 注意";
+    fatigueFill.style.backgroundColor = "#ffcc00";
+  } else if(fatigueScore < 80) {
+    fatigueLevel.innerText = "😴 疲勞";
+    fatigueFill.style.backgroundColor = "#ff8800";
+  } else {
+    fatigueLevel.innerText = "🚨 危險";
+    fatigueFill.style.backgroundColor = "var(--warn)";
+  }
+}
+
 async function initFaceMesh(){
   log("正在載入 MediaPipe 模型，請稍等 5～10 秒。");
 
   faceMesh = new FaceMesh({
-    locateFile: (file)=>{
-      return `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`;
-    }
+    locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`
   });
 
-  // iPhone Safari 穩定版重點：refineLandmarks 必須關閉
   faceMesh.setOptions({
-    maxNumFaces:1,
-    refineLandmarks:false,
-    minDetectionConfidence:0.35,
-    minTrackingConfidence:0.35
+    maxNumFaces: 1,
+    refineLandmarks: false,
+    minDetectionConfidence: 0.4,
+    minTrackingConfidence: 0.4
   });
 
   faceMesh.onResults(onResults);
-
-  if(faceMesh.initialize){
-    await faceMesh.initialize();
-  }
-
+  if (faceMesh.initialize) await faceMesh.initialize();
   log("MediaPipe 載入完成，準備開啟鏡頭。");
 }
 
@@ -411,162 +431,176 @@ function resizeCanvas(){
 }
 
 function onResults(results){
-  if(!running) return;
+  if (!running) return;
 
   resizeCanvas();
-  ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  if(results.multiFaceLandmarks && results.multiFaceLandmarks.length > 0){
+  if (results.multiFaceLandmarks && results.multiFaceLandmarks.length > 0) {
     const landmarks = results.multiFaceLandmarks[0];
 
-    const leftEAR = calculateEAR(landmarks,LEFT_EYE);
-    const rightEAR = calculateEAR(landmarks,RIGHT_EYE);
-    const ear = (leftEAR + rightEAR)/2.0;
-    const mar = calculateMAR(landmarks,MOUTH);
+    const leftEAR = calculateEAR(landmarks, LEFT_EYE);
+    const rightEAR = calculateEAR(landmarks, RIGHT_EYE);
+    const ear = (leftEAR + rightEAR) / 2.0;
+    const mar = calculateMAR(landmarks, MOUTH);
 
-if(!baselineEAR && calibration.length<40){
- calibration.push(ear);
- baselineEarEl.innerText="校正中";
-}
-if(!baselineEAR && calibration.length===40){
- baselineEAR=calibration.reduce((a,b)=>a+b,0)/calibration.length;
- EAR_THRESHOLD=baselineEAR*0.75;
- baselineEarEl.innerText=baselineEAR.toFixed(3);
- addEvent("EAR自動校正完成");
-}
+    // 1. 自動校正與視覺提示邏輯
+    if (!baselineEAR && calibration.length < 50) {
+      calibration.push(ear);
+      baselineEarEl.innerText = `校正中(${Math.round(calibration.length/50*100)}%)`;
+      
+      // 在畫面上繪製校正進度圓圈
+      ctx.fillStyle = "rgba(47, 128, 237, 0.6)";
+      ctx.font = "24px sans-serif";
+      ctx.fillText("請正對鏡頭保持睜眼...", canvas.width/2 - 110, canvas.height/2);
+    }
+    if (!baselineEAR && calibration.length === 50) {
+      baselineEAR = calibration.reduce((a, b) => a + b, 0) / calibration.length;
+      EAR_THRESHOLD = baselineEAR * 0.72; // 動態門檻值
+      baselineEarEl.innerText = baselineEAR.toFixed(3);
+      addEvent("EAR 自動校正完成");
+    }
 
     earText.innerText = ear.toFixed(3);
     marText.innerText = mar.toFixed(3);
 
-    for(let i of LEFT_EYE) drawPoint(landmarks[i],"#44ff99");
-    for(let i of RIGHT_EYE) drawPoint(landmarks[i],"#44ff99");
-    
-for(let i of MOUTH) drawPoint(landmarks[i],"#58a6ff");
+    // 繪製特徵點
+    for (let i of LEFT_EYE) drawPoint(landmarks[i], "var(--ok)");
+    for (let i of RIGHT_EYE) drawPoint(landmarks[i], "var(--ok)");
+    for (let i of MOUTH) drawPoint(landmarks[i], "#58a6ff");
 
-    ctx.strokeStyle="#2f80ed";
-    ctx.lineWidth=2;
+    // 繪製臉部外框
+    ctx.strokeStyle = "#2f80ed";
+    ctx.lineWidth = 1.5;
     ctx.strokeRect(
-      landmarks[234].x*canvas.width,
-      landmarks[10].y*canvas.height,
-      (landmarks[454].x-landmarks[234].x)*canvas.width,
-      (landmarks[152].y-landmarks[10].y)*canvas.height
+      landmarks[234].x * canvas.width,
+      landmarks[10].y * canvas.height,
+      (landmarks[454].x - landmarks[234].x) * canvas.width,
+      (landmarks[152].y - landmarks[10].y) * canvas.height
     );
 
+    const now = Date.now() / 1000;
+    let isEyeWarning = false;
+    let isYawnWarning = false;
 
-    const now = Date.now()/1000;
-    let warning = false;
-    let status = "正常";
-
-    if(landmarks[1].y < 0.75 && ear < EAR_THRESHOLD){
-      if(eyeClosedStart === null) eyeClosedStart = now;
-    }else{
+    // 2. 閉眼與打哈欠判斷邏輯
+    if (landmarks[1].y < 0.85 && ear < EAR_THRESHOLD) {
+      if (eyeClosedStart === null) eyeClosedStart = now;
+    } else {
       eyeClosedStart = null;
     }
 
-    if(mar > MAR_THRESHOLD){
-      if(yawnStart === null) yawnStart = now;
-    }else{
+    if (mar > MAR_THRESHOLD) {
+      if (yawnStart === null) yawnStart = now;
+    } else {
       yawnStart = null;
     }
 
     const eyeDuration = eyeClosedStart === null ? 0 : now - eyeClosedStart;
-
-if(eyeDuration>=2 && !blinkFlag){blinkFlag=true;blinkCount++;fatigueScore=Math.min(100,fatigueScore+10);addEvent("疲勞閉眼");}
-if(eyeDuration<0.5){blinkFlag=false;}
     const yawnDuration = yawnStart === null ? 0 : now - yawnStart;
 
     eyeTimeText.innerText = eyeDuration.toFixed(1) + "s";
-
-if(yawnDuration>=1.5 && !yawnFlag){yawnFlag=true;yawnCount++;fatigueScore=Math.min(100,fatigueScore+15);addEvent("打哈欠");}
-if(yawnDuration<0.5){yawnFlag=false;}
-
-blinkCountEl.innerText=blinkCount;
-yawnCountEl.innerText=yawnCount;
-fatigueScoreEl.innerText=fatigueScore;
-fatigueFill.style.width=fatigueScore+"%";
-
-if(fatigueScore<30) fatigueLevel.innerText="😀 清醒";
-else if(fatigueScore<60) fatigueLevel.innerText="😐 注意";
-else if(fatigueScore<80) fatigueLevel.innerText="😴 疲勞";
-else fatigueLevel.innerText="🚨 危險";
-
-const nowF=performance.now();
-fps=Math.round(1000/(nowF-lastFrame));
-lastFrame=nowF;
-fpsEl.innerText=fps;
     yawnTimeText.innerText = yawnDuration.toFixed(1) + "s";
 
-    if(eyeDuration >= 2.0){
-      status = "⚠ 疲勞閉眼警告";
-      warning = true;
+    // 觸發單次計數與加分
+    if (eyeDuration >= 2.0) {
+      isEyeWarning = true;
+      if (!blinkFlag) {
+        blinkFlag = true;
+        blinkCount++;
+        fatigueScore = Math.min(100, fatigueScore + 15);
+        lastEventTime = Date.now();
+        addEvent("疲勞閉眼事件");
+      }
     }
+    if (eyeDuration < 0.4) blinkFlag = false;
 
-    if(yawnDuration >= 1.5){
-      status = "⚠ 打哈欠警告";
-      warning = true;
+    if (yawnDuration >= 1.5) {
+      isYawnWarning = true;
+      if (!yawnFlag) {
+        yawnFlag = true;
+        yawnCount++;
+        fatigueScore = Math.min(100, fatigueScore + 20);
+        lastEventTime = Date.now();
+        addEvent("打哈欠事件");
+      }
     }
+    if (yawnDuration < 0.4) yawnFlag = false;
 
-    setStatus(status,warning);
+    blinkCountEl.innerText = blinkCount;
+    yawnCountEl.innerText = yawnCount;
+    updateFatigueUI();
 
-    if(warning && Date.now()-lastWarningTime>1500){
-      lastWarningTime=Date.now();
-      startAlarm();
-    }else{
+    // 3. 修正後的警報觸發與 UI 切換邏輯
+    if (isEyeWarning || isYawnWarning) {
+      let statusStr = isEyeWarning ? "⚠ 疲勞閉眼警告" : "";
+      if (isYawnWarning) statusStr += (statusStr ? " + " : "") + "⚠ 打哈欠警告";
+      
+      setStatus(statusStr, true);
+      startAlarm(); 
+    } else {
+      setStatus("正常運作中", false);
       stopAlarm();
     }
 
-    log("已偵測到人臉，EAR/MAR 正常更新中。");
+    // FPS 計算
+    const nowF = performance.now();
+    fps = Math.round(1000 / (nowF - lastFrame));
+    lastFrame = nowF;
+    fpsEl.innerText = fps;
 
-  }else{
-    ctx.clearRect(0,0,canvas.width,canvas.height);
+    log("已偵測到人臉，偵測核心運作中。");
+
+  } else {
+    // 沒偵測到人臉時歸零重置
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
     earText.innerText = "0.000";
     marText.innerText = "0.000";
     eyeTimeText.innerText = "0.0s";
     yawnTimeText.innerText = "0.0s";
     eyeClosedStart = null;
     yawnStart = null;
-    setStatus("未偵測到人臉",false);
+    setStatus("未偵測到人臉", false);
     stopAlarm();
-    log("鏡頭已開啟，但尚未偵測到人臉。請正對鏡頭、靠近一點、保持光線充足。");
+    log("鏡頭已開啟，但尚未偵測到人臉。請保持光線充足並正對鏡頭。");
   }
 }
 
 async function processLoop(){
-  if(!running) return;
-
+  if (!running) return;
   const now = performance.now();
+  
+  // 動態調整幀率間隔，確保低階手機不會記憶體塞車
+  const PROCESS_INTERVAL = fps < 18 ? 160 : 110;
 
-  const PROCESS_INTERVAL = fps < 20 ? 180 : 130;
-
-  if(video.readyState >= 2 && now - lastProcess > PROCESS_INTERVAL){
+  if (video.readyState >= 2 && now - lastProcess > PROCESS_INTERVAL) {
     lastProcess = now;
-    try{
+    try {
       await faceMesh.send({image: video});
-    }catch(e){
-      log("MediaPipe 執行錯誤：" + e.message + "。若仍發生，請重新整理 Safari。");
+    } catch(e) {
+      log("偵測核心異常：" + e.message + "，正在自動重試...");
     }
   }
-
   requestAnimationFrame(processLoop);
 }
 
 async function startSystem(){
-  try{
+  try {
     prepareAudio();
-    setStatus("系統啟動中",false);
+    setStatus("系統啟動中...", false);
 
-    if(!faceMesh){
+    if (!faceMesh) {
       await initFaceMesh();
     }
 
     stream = await navigator.mediaDevices.getUserMedia({
-      video:{
-        facingMode:"user",
-        width:{ideal:640},
-        height:{ideal:480},
-        frameRate:{ideal:24,max:24}
+      video: {
+        facingMode: "user",
+        width: {ideal: 640},
+        height: {ideal: 480},
+        frameRate: {ideal: 24, max: 24}
       },
-      audio:false
+      audio: false
     });
 
     video.setAttribute("playsinline", true);
@@ -575,15 +609,14 @@ async function startSystem(){
 
     running = true;
     badge.innerText = "偵測中";
-    log("鏡頭啟動成功。請將臉部放在畫面中央。");
-    setStatus("系統運作中",false);
+    setStatus("系統運作中", false);
 
     processLoop();
 
-  }catch(error){
+  } catch(error) {
     running = false;
-    setStatus("鏡頭或模型啟動失敗",true);
-    log("錯誤：" + error.message + "。請確認使用 Safari、HTTPS 網址、並允許相機權限。");
+    setStatus("鏡頭或模型啟動失敗", true);
+    log("錯誤：" + error.message + "。請確保使用 HTTPS 環境、Safari/Chrome 瀏覽器並核准相機權限。");
   }
 }
 
@@ -591,21 +624,24 @@ function stopSystem(){
   running = false;
   stopAlarm();
 
-  if(stream){
-    stream.getTracks().forEach(track=>track.stop());
+  if (stream) {
+    stream.getTracks().forEach(track => track.stop());
     stream = null;
   }
 
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-  setStatus("已停止",false);
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  setStatus("已停止", false);
   badge.innerText = "待機中";
   earText.innerText = "0.000";
   marText.innerText = "0.000";
   eyeTimeText.innerText = "0.0s";
   yawnTimeText.innerText = "0.0s";
+  calibration = [];
+  baselineEAR = null;
+  baselineEarEl.innerText = "--";
   log("系統已停止。");
 }
 </script>
-
 </body>
 </html>
+
